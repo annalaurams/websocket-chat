@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Nome -->
+  <div id="name-screen">
+    <form id="name-form">
+      <h2>Digite seu nome:</h2>
+      <input id="name-input" autocomplete="off" />
+      <button type="submit">Entrar</button>
+    </form>
+  </div>
+  
+  <!-- Chat -->
+  <div id="chat-screen" style="display: none;">
+      <button id="logout-button" style="position: absolute; top: 10px; right: 10px;">Logout</button>
+    <ul id="messages">
+      <li>Messages</li>
+    </ul>
+    <form id="form" action="">
+      <input id="input" autocomplete="off" />
+      <button type="submit">Send</button>
+    </form>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    let userName = '';
+
+    const nameForm = document.getElementById('name-form');
+    const nameInput = document.getElementById('name-input');
+    const nameScreen = document.getElementById('name-screen');
+    const chatScreen = document.getElementById('chat-screen');
+
+    const input = document.getElementById('input');
+    const form = document.getElementById('form');
+    const messages = document.getElementById('messages');
+
+    const logoutButton = document.getElementById('logout-button');
+
+    logoutButton.addEventListener('click', () => {
+      socket.emit('message', `🚪 ${userName} saiu do chat`);
+      userName = '';
+      chatScreen.style.display = 'none';
+      nameScreen.style.display = 'flex';
+      nameInput.value = '';
+      messages.innerHTML = '<li>Messages</li>';
+    });
+  
+    nameForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (nameInput.value.trim()) {
+        userName = nameInput.value.trim();
+        nameScreen.style.display = 'none';
+        chatScreen.style.display = 'block';
+        socket.emit('message', ` ${userName} entrou no chat`);
+      }
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (input.value) {
+        socket.emit('message', `${userName}: ${input.value}`);
+        input.value = '';
+      }
+    });
+
+    socket.on('message', (msg) => {
+      const li = document.createElement('li');
+      li.textContent = msg;
+      messages.appendChild(li);
+    });
+  </script>
+</body>
+</html>
